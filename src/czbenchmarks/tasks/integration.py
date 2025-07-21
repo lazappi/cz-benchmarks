@@ -101,7 +101,7 @@ class BatchIntegrationTask(BaseTask):
             MetricResult(
                 metric_type=pc_regression_metric,
                 value=metrics_registry.compute(
-                    silhouette_batch_metric,
+                    pc_regression_metric,
                     X=self.embedding,
                     adata_pre=self.adata_pre,
                     batch=self.batch_labels,
