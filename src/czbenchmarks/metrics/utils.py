@@ -110,14 +110,14 @@ def pc_regression_score(X: np.ndarray, adata_pre: ad.AnnData, batch: Union[pd.Ca
     from scib.metrics import pcr_comparison
 
     normalize_total(adata_pre, target_sum=1e4, inplace=True)
-    log1p(adata_pre, inplace=True)
+    log1p(adata_pre)
     adata_pre.obs["BATCH"] = batch
     reduce_data(adata_pre, batch_key="BATCH")
 
     adata_post = ad.AnnData(shape = X.shape, obsm={"X_emb": X})
     adata_post.obs["BATCH"] = batch
 
-    pcr_comparison(
+    return pcr_comparison(
         adata_pre,
         adata_post,
         covariate = "BATCH",
