@@ -129,9 +129,9 @@ def pc_regression_score(X: np.ndarray, adata_pre: ad.AnnData, batch: Union[pd.Ca
     # This assumes everything is in the correct location
     cmd = [
         "./.viash_build/pcr/pcr",
-        f"--input_integrated {h5ad_post}",
-        f"--input_solution {h5ad_pre}",
-        f"--output {h5ad_out}"
+        "--input_integrated", f"{h5ad_post}",
+        "--input_solution", f"{h5ad_pre}",
+        "--output", f"{h5ad_out}"
     ]
     subprocess.run(cmd, check=True)
 
