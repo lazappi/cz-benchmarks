@@ -63,6 +63,7 @@ class BatchIntegrationTask(BaseTask):
             data: Dataset containing embedding and labels
         """
         self.embedding = data.get_output(model_type, DataType.EMBEDDING)
+        self.adata_pre = data.get_input(DataType.ANNDATA)
         self.batch_labels = data.get_input(DataType.METADATA)[self.batch_key]
         self.labels = data.get_input(DataType.METADATA)[self.label_key]
 
@@ -76,6 +77,7 @@ class BatchIntegrationTask(BaseTask):
 
         entropy_per_cell_metric = MetricType.ENTROPY_PER_CELL
         silhouette_batch_metric = MetricType.BATCH_SILHOUETTE
+        pc_regression_metric = MetricType.PC_REGRESSION
 
         return [
             MetricResult(
@@ -93,6 +95,15 @@ class BatchIntegrationTask(BaseTask):
                     silhouette_batch_metric,
                     X=self.embedding,
                     labels=self.labels,
+                    batch=self.batch_labels,
+                ),
+            ),
+            MetricResult(
+                metric_type=pc_regression_metric,
+                value=metrics_registry.compute(
+                    silhouette_batch_metric,
+                    X=self.embedding,
+                    adata_pre=self.adata_pre,
                     batch=self.batch_labels,
                 ),
             ),
