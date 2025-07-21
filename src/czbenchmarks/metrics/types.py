@@ -20,6 +20,7 @@ class MetricType(Enum):
     # Integration metrics
     ENTROPY_PER_CELL = "entropy_per_cell"
     BATCH_SILHOUETTE = "batch_silhouette"
+    PC_REGRESSION = "pc_regression"
 
     # Cross-validation prediction metrics
     MEAN_FOLD_ACCURACY = "mean_fold_accuracy"
