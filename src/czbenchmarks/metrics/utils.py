@@ -107,7 +107,10 @@ def pc_regression_score(X: np.ndarray, adata_pre: ad.AnnData, batch: Union[pd.Ca
 
     from scanpy.preprocessing import normalize_total, log1p
     from scib.preprocessing import reduce_data
-    from scib.metrics import pcr_comparison
+
+    import subprocess
+    import tempfile
+    import shutil
 
     normalize_total(adata_pre, target_sum=1e4, inplace=True)
     log1p(adata_pre)
@@ -117,12 +120,28 @@ def pc_regression_score(X: np.ndarray, adata_pre: ad.AnnData, batch: Union[pd.Ca
     adata_post = ad.AnnData(shape = X.shape, obsm={"X_emb": X})
     adata_post.obs["BATCH"] = batch
 
-    return pcr_comparison(
-        adata_pre,
-        adata_post,
-        covariate = "BATCH",
-        embed = "X_emb"
-    )
+    temp_dir = tempfile.mkdtemp()
+    h5ad_pre = f"{temp_dir}/adata_pre.h5ad"
+    h5ad_post = f"{temp_dir}/adata_post.h5ad"
+    h5ad_out = f"{temp_dir}/pcr_output.h5ad"
+
+    # Call the Viash component
+    # This assumes everything is in the correct location
+    cmd = [
+        "./.viash_build/pcr/pcr",
+        f"--input_integrated {h5ad_post}",
+        f"--input_solution {h5ad_pre}",
+        f"--output {h5ad_out}"
+    ]
+    subprocess.run(cmd, check=True)
+
+    # Load the output h5ad file
+    adata_out = ad.read_h5ad(h5ad_out)
+
+    # Clean up temporary files
+    shutil.rmtree(temp_dir)
+
+    return adata_out.uns["metric_values"][0]
 
 
 def jaccard_score(y_true: set[str], y_pred: set[str]):
