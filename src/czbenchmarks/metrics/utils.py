@@ -114,11 +114,11 @@ def pc_regression_score(X: np.ndarray, adata_pre: ad.AnnData, batch: Union[pd.Ca
 
     normalize_total(adata_pre, target_sum=1e4, inplace=True)
     log1p(adata_pre)
-    adata_pre.obs["BATCH"] = batch
-    reduce_data(adata_pre, batch_key="BATCH")
+    adata_pre.layers["normalized"] = adata_pre.X.copy()
+    adata_pre.obs["batch"] = batch
+    reduce_data(adata_pre, batch_key="batch")
 
     adata_post = ad.AnnData(shape = X.shape, obsm={"X_emb": X})
-    adata_post.obs["BATCH"] = batch
 
     temp_dir = tempfile.mkdtemp()
     h5ad_pre = f"{temp_dir}/adata_pre.h5ad"
