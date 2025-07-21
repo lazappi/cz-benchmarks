@@ -2,6 +2,7 @@ import collections
 import statistics
 from typing import Iterable, Union
 
+import anndata as ad
 import numpy as np
 import pandas as pd
 
@@ -90,6 +91,38 @@ def compute_entropy_per_cell(
         (-label_counts_per_cell_normed * _safelog(label_counts_per_cell_normed)).sum(1)
         / _safelog(np.array([len(unique_batch_labels)]))
     ).mean()
+
+
+def pc_regression_score(X: np.ndarray, adata_pre: ad.AnnData, batch: Union[pd.Categorical, pd.Series, np.ndarray]) -> float:
+    """Compute PC regression score comparing variance explained by batch.
+
+    Args:
+        X: Cell embedding matrix of shape (n_cells, n_dimensions)
+        adata_pre: AnnData before integration of shape (n_cells, n_features)
+        batch: Series containing batch labels for each cell
+
+    Returns:
+        Difference in variance explained by batch before and after integration
+    """
+
+    from scanpy.preprocessing import normalize_total, log1p
+    from scib.preprocessing import reduce_data
+    from scib.metrics import pcr_comparison
+
+    normalize_total(adata_pre, target_sum=1e4, inplace=True)
+    log1p(adata_pre, inplace=True)
+    adata_pre.obs["BATCH"] = batch
+    reduce_data(adata_pre, batch_key="BATCH")
+
+    adata_post = ad.AnnData(shape = X.shape, obsm={"X_emb": X})
+    adata_post.obs["BATCH"] = batch
+
+    pcr_comparison(
+        adata_pre,
+        adata_post,
+        covariate = "BATCH",
+        embed = "X_emb"
+    )
 
 
 def jaccard_score(y_true: set[str], y_pred: set[str]):
