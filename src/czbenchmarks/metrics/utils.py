@@ -125,6 +125,9 @@ def pc_regression_score(X: np.ndarray, adata_pre: ad.AnnData, batch: Union[pd.Ca
     h5ad_post = f"{temp_dir}/adata_post.h5ad"
     h5ad_out = f"{temp_dir}/pcr_output.h5ad"
 
+    adata_pre.write_h5ad(h5ad_pre)
+    adata_post.write_h5ad(h5ad_post)
+
     # Call the Viash component
     # This assumes everything is in the correct location
     cmd = [
