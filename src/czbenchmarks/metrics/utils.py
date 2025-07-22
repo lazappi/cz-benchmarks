@@ -8,6 +8,7 @@ import pandas as pd
 
 from ..tasks.constants import RANDOM_SEED
 from .types import AggregatedMetricResult, MetricResult
+from ..openproblems.openproblems import get_metric_executable
 
 
 def _safelog(a: np.ndarray) -> np.ndarray:
@@ -133,9 +134,9 @@ def pc_regression_score(X: np.ndarray, adata_pre: ad.AnnData, batch: Union[pd.Ca
     adata_post.write_h5ad(h5ad_post)
 
     # Call the Viash component
-    # This assumes everything is in the correct location
+    metric_executable = get_metric_executable("task_batch_integration", "pcr")
     cmd = [
-        "./.viash_build/pcr/pcr",
+        metric_executable,
         "--input_integrated", f"{h5ad_post}",
         "--input_solution", f"{h5ad_pre}",
         "--output", f"{h5ad_out}"
