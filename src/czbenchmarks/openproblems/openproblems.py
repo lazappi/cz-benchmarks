@@ -51,7 +51,7 @@ def build_viash_component(repo_path: str, component_path: str) -> str:
         component_path: Path to the component within the repository
 
     Returns:
-        Path to the built Viash component executable
+        Absolute path to the built Viash component executable
     """
 
     config_path = os.path.join(component_path, "config.vsh.yaml")
@@ -64,7 +64,7 @@ def build_viash_component(repo_path: str, component_path: str) -> str:
     executable_path = os.path.join(repo_path, target_path, component_name)
 
     if os.path.exists(executable_path):
-        return executable_path
+        return os.path.abspath(executable_path)
 
     os.chdir(repo_path)
     subprocess.run(
@@ -79,4 +79,4 @@ def build_viash_component(repo_path: str, component_path: str) -> str:
         check=True
     )
 
-    return executable_path
+    return os.path.abspath(executable_path)
