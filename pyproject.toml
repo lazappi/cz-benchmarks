@@ -39,7 +39,7 @@ dependencies = [
     "pydantic>=2.0.0",
     "hnswlib>=0.8.0",
     "tomli>=2.2.1",
-    "boto3-stubs-lite[s3]>=1.38.0",
+    "boto3-stubs-lite[s3]>=1.38.0"
 ]
 
 [project.optional-dependencies]
@@ -74,12 +74,12 @@ docs = [
     "sphinx-autodoc-typehints",
     "sphinx-markdown-builder",
     "myst-parser",
-    "sphinxcontrib.mermaid", 
+    "sphinxcontrib.mermaid",
     "sphinx-rtd-theme",
     "sphinx-copybutton",
     "nbsphinx",
     "linkify-it-py",
-    
+
 ]
 
 [project.urls]
