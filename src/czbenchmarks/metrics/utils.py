@@ -2,11 +2,13 @@ import collections
 import statistics
 from typing import Iterable, Union
 
+import anndata as ad
 import numpy as np
 import pandas as pd
 
 from ..tasks.constants import RANDOM_SEED
 from .types import AggregatedMetricResult, MetricResult
+from ..openproblems.openproblems import get_metric_executable
 
 
 def _safelog(a: np.ndarray) -> np.ndarray:
@@ -90,6 +92,64 @@ def compute_entropy_per_cell(
         (-label_counts_per_cell_normed * _safelog(label_counts_per_cell_normed)).sum(1)
         / _safelog(np.array([len(unique_batch_labels)]))
     ).mean()
+
+
+def pc_regression_score(X: np.ndarray, adata_pre: ad.AnnData, batch: Union[pd.Categorical, pd.Series, np.ndarray]) -> float:
+    """Compute PC regression score comparing variance explained by batch.
+
+    Args:
+        X: Cell embedding matrix of shape (n_cells, n_dimensions)
+        adata_pre: AnnData before integration of shape (n_cells, n_features)
+        batch: Series containing batch labels for each cell
+
+    Returns:
+        Difference in variance explained by batch before and after integration
+    """
+
+    from scanpy.preprocessing import normalize_total, log1p
+    from scib.preprocessing import reduce_data
+
+    import subprocess
+    import tempfile
+    import shutil
+
+    normalize_total(adata_pre, target_sum=1e4, inplace=True)
+    log1p(adata_pre)
+    adata_pre.obs["batch"] = batch
+    reduce_data(adata_pre, batch_key="batch")
+    adata_pre.layers["normalized"] = adata_pre.X.copy()
+    adata_pre.var["batch_hvg"] = adata_pre.var["highly_variable"]
+    adata_pre.uns["dataset_id"] = "dummy"
+    adata_pre.uns["normalization_id"] = "log1p"
+
+    adata_post = ad.AnnData(shape = X.shape, obsm={"X_emb": X})
+    adata_post.uns["method_id"] = "dummy"
+
+    temp_dir = tempfile.mkdtemp()
+    h5ad_pre = f"{temp_dir}/adata_pre.h5ad"
+    h5ad_post = f"{temp_dir}/adata_post.h5ad"
+    h5ad_out = f"{temp_dir}/pcr_output.h5ad"
+
+    adata_pre.write_h5ad(h5ad_pre)
+    adata_post.write_h5ad(h5ad_post)
+
+    # Call the Viash component
+    metric_executable = get_metric_executable("task_batch_integration", "pcr")
+    cmd = [
+        metric_executable,
+        "--input_integrated", f"{h5ad_post}",
+        "--input_solution", f"{h5ad_pre}",
+        "--output", f"{h5ad_out}"
+    ]
+    subprocess.run(cmd, check=True)
+
+    # Load the output h5ad file
+    adata_out = ad.read_h5ad(h5ad_out)
+
+    # Clean up temporary files
+    shutil.rmtree(temp_dir)
+
+    return adata_out.uns["metric_values"][0]
 
 
 def jaccard_score(y_true: set[str], y_pred: set[str]):

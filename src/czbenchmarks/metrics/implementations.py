@@ -7,7 +7,7 @@ from sklearn.metrics import (
     mean_squared_error,
 )
 from scipy.stats import pearsonr
-from .utils import compute_entropy_per_cell, mean_fold_metric, jaccard_score
+from .utils import compute_entropy_per_cell, mean_fold_metric, jaccard_score, pc_regression_score
 
 from .types import MetricRegistry, MetricType
 
@@ -60,6 +60,16 @@ metrics_registry.register(
     description=(
         "Batch-aware silhouette score that measures how well cells "
         "cluster across batches."
+    ),
+    tags={"integration"},
+)
+
+metrics_registry.register(
+    MetricType.PC_REGRESSION,
+    func=pc_regression_score,
+    required_args={"X", "adata_pre", "batch"},
+    description=(
+        "Compare variance explained by batch before and after integration"
     ),
     tags={"integration"},
 )
