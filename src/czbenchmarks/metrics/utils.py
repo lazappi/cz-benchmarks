@@ -108,8 +108,8 @@ def pc_regression_score(X: np.ndarray, adata_pre: ad.AnnData, batch: Union[pd.Ca
 
     from scanpy.preprocessing import normalize_total, log1p
     from scib.preprocessing import reduce_data
+    from task_batch_integration.metrics.pcr import run as run_pcr
 
-    import subprocess
     import tempfile
     import shutil
 
@@ -128,20 +128,17 @@ def pc_regression_score(X: np.ndarray, adata_pre: ad.AnnData, batch: Union[pd.Ca
     temp_dir = tempfile.mkdtemp()
     h5ad_pre = f"{temp_dir}/adata_pre.h5ad"
     h5ad_post = f"{temp_dir}/adata_post.h5ad"
-    h5ad_out = f"{temp_dir}/pcr_output.h5ad"
+    h5ad_out = f"{temp_dir}/output.h5ad"
 
     adata_pre.write_h5ad(h5ad_pre)
     adata_post.write_h5ad(h5ad_post)
 
-    # Call the Viash component
-    metric_executable = get_metric_executable("task_batch_integration", "pcr")
-    cmd = [
-        metric_executable,
-        "--input_integrated", f"{h5ad_post}",
-        "--input_solution", f"{h5ad_pre}",
-        "--output", f"{h5ad_out}"
-    ]
-    subprocess.run(cmd, check=True)
+    # Run the metric executable
+    run_pcr(
+        input_integrated=h5ad_post,
+        input_solution=h5ad_pre,
+        publish_dir=temp_dir,
+    )
 
     # Load the output h5ad file
     adata_out = ad.read_h5ad(h5ad_out)
