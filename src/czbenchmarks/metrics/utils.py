@@ -126,27 +126,18 @@ def pc_regression_score(X: np.ndarray, adata_pre: ad.AnnData, batch: Union[pd.Ca
     adata_post.uns["method_id"] = "dummy"
 
     temp_dir = tempfile.mkdtemp()
-    h5ad_pre = f"{temp_dir}/adata_pre.h5ad"
-    h5ad_post = f"{temp_dir}/adata_post.h5ad"
-    h5ad_out = f"{temp_dir}/output.h5ad"
-
-    adata_pre.write_h5ad(h5ad_pre)
-    adata_post.write_h5ad(h5ad_post)
 
     # Run the metric executable
-    run_pcr(
-        input_integrated=h5ad_post,
-        input_solution=h5ad_pre,
+    out = run_pcr(
+        input_integrated=adata_post,
+        input_solution=adata_pre,
         publish_dir=temp_dir,
     )
-
-    # Load the output h5ad file
-    adata_out = ad.read_h5ad(h5ad_out)
 
     # Clean up temporary files
     shutil.rmtree(temp_dir)
 
-    return adata_out.uns["metric_values"][0]
+    return out["output"].uns["metric_values"][0]
 
 
 def jaccard_score(y_true: set[str], y_pred: set[str]):
