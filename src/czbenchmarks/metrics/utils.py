@@ -8,8 +8,6 @@ import pandas as pd
 
 from ..tasks.constants import RANDOM_SEED
 from .types import AggregatedMetricResult, MetricResult
-from ..openproblems.openproblems import get_metric_executable
-
 
 def _safelog(a: np.ndarray) -> np.ndarray:
     """Compute safe log that handles zeros by returning 0.
